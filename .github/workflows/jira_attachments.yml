@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       issue_key:
-        description: 'Clave de la Tarjeta Jira (Ej: PROJ-123)'
+        description: 'Clave de la Tarjeta Jira (Ej: PROJ-12)'
         required: true
         default: 'KAN-1'
 
