@@ -1,0 +1,49 @@
+name: Obtener Adjuntos de Jira
+
+on:
+  # Dispara la acción manualmente
+  workflow_dispatch:
+    inputs:
+      issue_key:
+        description: 'Clave de la Tarjeta Jira (Ej: PROJ-123)'
+        required: true
+        default: 'PROJ-123'
+
+jobs:
+  get_names:
+    runs-on: ubuntu-latest
+    
+    # Define la salida para que otros jobs puedan usarla
+    outputs:
+      attachment_list: ${{ steps.get_attachments.outputs.attachment_names }}
+
+    steps:
+      - name: Checkout del Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Instalar Dependencias
+        run: pip install jira
+
+      - name: Ejecutar Script Python para Obtener Adjuntos
+        id: get_attachments # ID para referenciar los outputs
+        env:
+          # Secretos del repositorio para las credenciales de Jira
+          JIRA_SERVER_URL: ${{ secrets.JIRA_SERVER_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          # Usar el input proporcionado al disparar la acción
+          JIRA_ISSUE_KEY: ${{ github.event.inputs.issue_key }}
+          
+        run: python get_attachments.py
+
+      - name: Usar la Lista de Nombres
+        run: |
+          echo "La lista de nombres de archivos adjuntos es:"
+          echo "${{ steps.get_attachments.outputs.attachment_names }}"
+          
+          # Puedes iterar o usar esta variable en pasos posteriores
