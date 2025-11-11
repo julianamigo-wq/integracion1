@@ -7,7 +7,7 @@ on:
       issue_key:
         description: 'Clave de la Tarjeta Jira (Ej: PROJ-123)'
         required: true
-        default: 'PROJ-123'
+        default: 'KAN-1'
 
 jobs:
   get_names:
