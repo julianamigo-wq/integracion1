@@ -1,19 +1,16 @@
-name: Obtener Adjuntos de Jira
+# .github/workflows/jira_webhook_attachments.yml
+name: 🚀 Procesar Adjuntos de Jira via Webhook
 
 on:
-  # Dispara la acción manualmente
-  workflow_dispatch:
-    inputs:
-      issue_key:
-        description: 'Clave de la Tarjeta Jira (Ej: PROJ-12)'
-        required: true
-        default: 'KAN-1'
+  # ❗ CAMBIO CRUCIAL: Escucha el evento que n8n enviará.
+  repository_dispatch:
+    types: [archivo_adjunto_jira] # Este tipo debe coincidir con el payload de n8n
 
 jobs:
   get_names:
     runs-on: ubuntu-latest
     
-    # Define la salida para que otros jobs puedan usarla
+    # Define la salida (si se necesita en trabajos posteriores)
     outputs:
       attachment_list: ${{ steps.get_attachments.outputs.attachment_names }}
 
@@ -30,20 +27,19 @@ jobs:
         run: pip install jira
 
       - name: Ejecutar Script Python para Obtener Adjuntos
-        id: get_attachments # ID para referenciar los outputs
+        id: get_attachments
         env:
           # Secretos del repositorio para las credenciales de Jira
           JIRA_SERVER_URL: ${{ secrets.JIRA_SERVER_URL }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          # Usar el input proporcionado al disparar la acción
-          JIRA_ISSUE_KEY: ${{ github.event.inputs.issue_key }}
+          # Obtener la clave de la tarjeta del payload de n8n
+          # n8n enviará 'issue_key' dentro del 'client_payload'
+          JIRA_ISSUE_KEY: ${{ github.event.client_payload.issue_key }} 
           
         run: python get_attachments.py
 
-      - name: Usar la Lista de Nombres
+      - name: 📝 Resultado Obtenido
         run: |
-          echo "La lista de nombres de archivos adjuntos es:"
-          echo "${{ steps.get_attachments.outputs.attachment_names }}"
-          
-          # Puedes iterar o usar esta variable en pasos posteriores
+          echo "Clave de Jira procesada: ${{ env.JIRA_ISSUE_KEY }}"
+          echo "Nombres obtenidos: ${{ steps.get_attachments.outputs.attachment_names }}"
